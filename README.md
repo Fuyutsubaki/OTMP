@@ -6,8 +6,11 @@ ObjectTemplateMetaPrograming
 
 遅延評価とか複雑なことはできない。金髪美少女におチンポと言わせたいだけのライブラリ
 
-VisualStudio2013で開発
+動作想定環境
+VisualStudio2013
 
-GCC でも Clang でも多分動く。さっきは動いてた。ちゃんとテストしてない
+GCC 4.8.2 以降
+
+Clang 3.1 以降
 
 boostなんちゃらライセンス
