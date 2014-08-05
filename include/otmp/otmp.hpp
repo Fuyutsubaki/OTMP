@@ -53,7 +53,7 @@ namespace otmp
 			->index_sequence<Idxs..., (N / 2 + Idxs)...>;
 		template<std::size_t...Idxs>
 		static auto trans(index_sequence<Idxs...>, std::true_type)
-			->index_sequence<Idxs..., (N / 2 + Idxs)..., N>;
+			->index_sequence<Idxs..., (N / 2 + Idxs)..., N - 1>;
 	public:
 		using type = decltype(trans(make_index_sequence_t<N / 2>{}, unbox_t<Bool_<N % 2>>{}));
 	};
@@ -135,19 +135,12 @@ namespace otmp
 	class fold1
 	{
 		template<std::size_t Begin, std::size_t Len>
-		struct impl;
-		template<std::size_t Begin, std::size_t Len>
-		struct wrap
-			:eval <Func, List<unbox_t<impl<Begin, Len / 2>>, unbox_t<impl<Begin + Len / 2, Len - Len / 2>>> >
-		{};
-
-		template<std::size_t Begin, std::size_t Len>
 		struct impl
-			:std::conditional<
-			(Len == 1),
-			at<Begin, list>,
-			wrap<Begin, Len>
-			>::type
+			:eval<Func, List<unbox_t<impl<Begin, Len / 2>>, unbox_t<impl<Begin + Len / 2, Len - Len / 2>>> >
+		{};
+		template<std::size_t Begin>
+		struct impl<Begin, 1>
+			:at<Begin, list>
 		{};
 	public:
 		using type = unbox_t<impl<0, getLength_t<list>::value>>;
@@ -210,6 +203,20 @@ namespace otmp
 
 	template<class list, class Pred>
 	using all_t = unbox_t<all<list, Pred>>;
+
+	template<std::size_t N>
+	class make_index_list
+	{
+		template<std::size_t...Idxs>
+		static auto trans(index_sequence<Idxs...>)->List<std::integral_constant<std::size_t, Idxs>...>;
+	public:
+		using type = decltype(trans(make_index_sequence_t<N>{}));
+	};
+	template<std::size_t N>
+	using make_index_list_t = unbox_t<make_index_list<N>>;
+
+
+
 
 }//namespace otmp
 
