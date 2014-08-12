@@ -2,7 +2,7 @@
 #define MAGIC_OTMP_HPP
 #include<type_traits>
 
-//List
+
 namespace otmp
 {
 	template<typename...T>
@@ -239,6 +239,22 @@ namespace otmp
 		};
 	};
 
+	template<class Func, class...Args>
+	struct S
+	{
+		template<class...T>
+		class apply
+		{
+			template<class U>
+			struct impl :identity<U>{};
+			template<std::size_t N>
+			struct impl<Arg<N>>:at<N, List<T...>>{};
+			template<class ...U>
+			struct impl<S<U...>>:eval<S<U...>, T...>{};
+		public:
+			using type = apply_t<map_t<List<Args...>, lift<impl>>, Func>;
+		};
+	};
 
 	template<class list, class Func>
 	class fold1
