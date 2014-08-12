@@ -2,6 +2,14 @@
 #define MAGIC_OTMP_HPP
 #include<type_traits>
 
+//List
+namespace otmp
+{
+	template<typename...T>
+	struct List
+	{};
+}
+//utility
 namespace otmp
 {
 	template<class T>
@@ -57,15 +65,12 @@ namespace otmp
 		{};
 	};
 }
-
-
+//index_sequence
 namespace otmp
 {
 	template<std::size_t ...Idxs>
 	struct index_sequence
-	{
-		using type = index_sequence;
-	};
+	{};
 	template<std::size_t N>
 	struct make_index_sequence;
 	template<std::size_t N>
@@ -88,9 +93,7 @@ namespace otmp
 		using type = index_sequence<>;
 	};
 }
-
-
-
+//List Helper
 namespace otmp
 {
 	namespace deteil
@@ -98,10 +101,7 @@ namespace otmp
 		template<std::size_t>
 		struct do_nothing{ do_nothing(...); };
 	}
-	template<typename...T>
-	struct List
-	{};
-
+	
 	template<class list>
 	class getLength
 	{
@@ -278,7 +278,6 @@ namespace otmp
 	template<class list, class Func>
 	using filter_if_t = unbox_t<filter_if<list, Func>>;
 }
-
 //Logic
 namespace otmp
 {
