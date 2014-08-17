@@ -321,7 +321,7 @@ namespace otmp
 			:if_<unbox_t<eval<Func,T>>, Vector<T>, Vector<>>
 		{};
 	public:
-
+		//using type = map_t < list, lift<impl>>;
 		using type = fold_t<map_t<list, lift<impl>>, lift<concat>, Vector<>>;
 	};
 	template<class list, class Func>
