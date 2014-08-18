@@ -331,39 +331,25 @@ namespace otmp
 {
 	namespace deteil
 	{
-		//logic_impl‚ğ‚¤‚Ü‚­Šˆ—p‚·‚é‚±‚Æ‚É‚æ‚èO(1)‚ÅÀ‘•‚Å‚«‚é‚Í‚¸‚È‚Ì‚¾‚ª
-		//‚Ç‚¤‚É‚à“®ì‚ªˆÀ’è‚¹‚¸•s‰Âv‹c‚È“®‚«‚ğ‚·‚é
-		template<class T>
-		struct booltype_aound
-			:identity<std::integral_constant<bool, T::value>>
-		{};
-		template<bool is_all, bool result, class list>
-		class logic_impl
+		template<class list>
+		struct all_impl
 		{
 			template<class...T>
-			static Bool_t<result> impl(List<std::integral_constant<T, is_all>...>);
-			static Bool_t<!result> impl(...);
+			static std::true_type impl(List<T*...>);
+			static std::true_type impl(List<>);
+			static std::false_type impl(...);
 		public:
-			using type = decltype((std::declval<map_t<list, lift<booltype_aound>>>()));
+			using type = decltype(impl(std::declval<map_t<list, rcarry<lift<if_>, int*, int>>>()));
 		};
-
-		template<class L, class R>
-		struct bi_or
-			:Bool_<(L::value || R::value)>
-		{};
-		template<class L, class R>
-		struct bi_and
-			:Bool_<(L::value && R::value)>
-		{};
 	}
 
 	template<class list, class Func>
-	struct all_of :fold<map_t<list, Func>, lift<deteil::bi_and>, std::false_type>{};
+	struct all_of :deteil::all_impl<map_t<list, Func>>{};
 	template<class list, class Func>
 	using all_of_t = unbox_t<all_of<list, Func>>;
 
 	template<class list, class Func>
-	struct any_of :fold<map_t<list, Func>, lift<deteil::bi_or>, std::false_type>	{};
+	struct any_of :not_<all_of_t<list, not_apply<Func>>>{};
 	template<class list, class Func>
 	using any_of_t = unbox_t<any_of<list, Func>>;
 }
