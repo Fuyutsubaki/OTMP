@@ -99,16 +99,16 @@ namespace otmp
 		template<std::size_t, class>
 		struct Pair{};
 		template<class...>
-		struct Vector_impl;
+		struct List_impl;
 		template<std::size_t...Idx, class...T>
-		struct Vector_impl<index_sequence<Idx...>, T...>
+		struct List_impl<index_sequence<Idx...>, T...>
 			:Pair<Idx, T>...
 		{};
 	}
 
 	template<typename...T>
-	struct Vector
-		:deteil::Vector_impl<make_index_sequence_t<sizeof...(T)>, T...>
+	struct List
+		:deteil::List_impl<make_index_sequence_t<sizeof...(T)>, T...>
 	{};
 
 	namespace deteil
@@ -116,13 +116,13 @@ namespace otmp
 		template<std::size_t>
 		struct do_nothing{ do_nothing(...); };
 		template<class...T>
-		static auto getLengthImpl(Vector<T...>)->std::integral_constant<std::size_t, (sizeof...(T))>;
+		static auto getLengthImpl(List<T...>)->std::integral_constant<std::size_t, (sizeof...(T))>;
 
 		template<std::size_t N, class T>
 		T at_impl(deteil::Pair<N, T>);
 
 		template<class...A, class...B>
-		static Vector<A..., B...>concat_impl(Vector<A...>, Vector<B...>);
+		static List<A..., B...>concat_impl(List<A...>, List<B...>);
 	}
 	
 	template<class list>
@@ -163,10 +163,10 @@ namespace otmp
 	{
 		template<class T, class IdxSeq>struct impl;
 		template<class...T, std::size_t ...Idxs>
-		struct impl<Vector<T...>, index_sequence<Idxs...>>
+		struct impl<List<T...>, index_sequence<Idxs...>>
 		{
 			template<class...U>
-			static Vector<unbox_t<U>...> trans(deteil::do_nothing<Idxs>..., U...);
+			static List<unbox_t<U>...> trans(deteil::do_nothing<Idxs>..., U...);
 			using type = decltype(trans(identity<T>{}...));
 		};
 	public:
@@ -191,8 +191,8 @@ namespace otmp
 	using tail_t = unbox_t<tail<list>>;
 
 	template<class ...T>
-	struct make_vector
-		:identity<Vector<T...>>
+	struct make_List
+		:identity<List<T...>>
 	{};
 }
 //HiOrderFunction
@@ -205,11 +205,11 @@ namespace otmp
 	namespace HOFdeteil
 	{
 		template<class Func, class...T>
-		auto map_impl(Vector<T...>, Func)
-			->Vector<unbox_t<eval<Func, T>>...>;
+		auto map_impl(List<T...>, Func)
+			->List<unbox_t<eval<Func, T>>...>;
 
 		template<class Func, class...T>
-		auto apply_impl(Vector<T...>, Func)
+		auto apply_impl(List<T...>, Func)
 			->eval<Func, T...>;
 	}
 
@@ -238,9 +238,9 @@ namespace otmp
 			template<class U>
 			struct impl :identity<U>	{};
 			template<std::size_t N>
-			struct impl<Arg<N>>:at<N, Vector<T...>>{};
+			struct impl<Arg<N>>:at<N, List<T...>>{};
 		public:
-			using type = apply_t<map_t<Vector<Args...>, lift<impl>>, Func>;
+			using type = apply_t<map_t<List<Args...>, lift<impl>>, Func>;
 		};
 	};
 
@@ -253,11 +253,11 @@ namespace otmp
 			template<class U>
 			struct impl :identity<U>{};
 			template<std::size_t N>
-			struct impl<Arg<N>>:at<N, Vector<T...>>{};
+			struct impl<Arg<N>>:at<N, List<T...>>{};
 			template<class ...U>
 			struct impl<S<U...>>:eval<S<U...>, T...>{};
 		public:
-			using type = apply_t<map_t<Vector<Args...>, lift<impl>>, Func>;
+			using type = apply_t<map_t<List<Args...>, lift<impl>>, Func>;
 		};
 	};
 
@@ -318,11 +318,10 @@ namespace otmp
 	{
 		template<class T>
 		struct impl
-			:if_<unbox_t<eval<Func,T>>, Vector<T>, Vector<>>
+			:if_<unbox_t<eval<Func,T>>, List<T>, List<>>
 		{};
 	public:
-		//using type = map_t < list, lift<impl>>;
-		using type = fold_t<map_t<list, lift<impl>>, lift<concat>, Vector<>>;
+		using type = fold_t<map_t<list, lift<impl>>, lift<concat>, List<>>;
 	};
 	template<class list, class Func>
 	using filter_if_t = unbox_t<filter_if<list, Func>>;
@@ -332,29 +331,39 @@ namespace otmp
 {
 	namespace deteil
 	{
+		//logic_impl‚ğ‚¤‚Ü‚­Šˆ—p‚·‚é‚±‚Æ‚É‚æ‚èO(1)‚ÅÀ‘•‚Å‚«‚é‚Í‚¸‚È‚Ì‚¾‚ª
+		//‚Ç‚¤‚É‚à“®ì‚ªˆÀ’è‚¹‚¸•s‰Âv‹c‚È“®‚«‚ğ‚·‚é
 		template<class T>
 		struct booltype_aound
 			:identity<std::integral_constant<bool, T::value>>
 		{};
-		template<bool R, bool S, class list>
+		template<bool is_all, bool result, class list>
 		class logic_impl
 		{
 			template<class...T>
-			static Bool_t<S> impl(Vector<std::integral_constant<T, S>...>);
-			template<class...T>
-			static Bool_t<!S> impl(Vector<T...>);
+			static Bool_t<result> impl(List<std::integral_constant<T, is_all>...>);
+			static Bool_t<!result> impl(...);
 		public:
-			using type = decltype(impl(std::declval<map_t<list, lift<booltype_aound>>>()));
+			using type = decltype((std::declval<map_t<list, lift<booltype_aound>>>()));
 		};
+
+		template<class L, class R>
+		struct bi_or
+			:Bool_<(L::value || R::value)>
+		{};
+		template<class L, class R>
+		struct bi_and
+			:Bool_<(L::value && R::value)>
+		{};
 	}
 
 	template<class list, class Func>
-	struct all_of :deteil::logic_impl<true, true, map_t<list, Func>>	{};
+	struct all_of :fold<map_t<list, Func>, lift<deteil::bi_and>, std::false_type>{};
 	template<class list, class Func>
 	using all_of_t = unbox_t<all_of<list, Func>>;
 
 	template<class list, class Func>
-	struct any_of :deteil::logic_impl<false, false, map_t<list, Func>>	{};
+	struct any_of :fold<map_t<list, Func>, lift<deteil::bi_or>, std::false_type>	{};
 	template<class list, class Func>
 	using any_of_t = unbox_t<any_of<list, Func>>;
 }
@@ -364,7 +373,7 @@ namespace otmp
 
 	template<class list>
 	struct cat
-		: fold<list, lift<concat>, Vector<>>
+		: fold<list, lift<concat>, List<>>
 	{};
 	template<class list>
 	using cat_t = unbox_t<cat<list>>;
@@ -378,12 +387,12 @@ namespace otmp
 
 	template<class listL, class listR>
 	struct unique_concat
-		:concat<filter_if_t<listL, rcarry<lift<in>, listR>>, listR>
+		:concat<listL, filter_if_t<listR, not_apply<rcarry<lift<in>, listL>>>>
 	{};
 
 	template<class list>
 	struct unique
-		:fold<map_t<list, lift<make_vector>>, lift<unique_concat>, Vector<>>
+		:fold<map_t<list, lift<make_List>>, lift<unique_concat>, List<>>
 	{};
 	template<class list>
 	using unique_t = unbox_t<unique<list>>;
