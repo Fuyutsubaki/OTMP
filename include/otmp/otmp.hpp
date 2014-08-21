@@ -54,7 +54,7 @@ namespace otmp
 	};
 
 	template<template<class...>class Func>
-	struct lift_c
+	struct self
 	{
 		template<class...T>
 		struct apply
@@ -62,6 +62,7 @@ namespace otmp
 		{};
 	};
 }
+
 
 //index_sequence
 namespace otmp
@@ -190,10 +191,6 @@ namespace otmp
 	template<class list>
 	using tail_t = unbox_t<tail<list>>;
 
-	template<class ...T>
-	struct make_List
-		:identity<List<T...>>
-	{};
 }
 //HiOrderFunction
 namespace otmp
@@ -356,7 +353,6 @@ namespace otmp
 
 namespace otmp
 {
-
 	template<class list>
 	struct cat
 		: fold<list, lift<concat>, List<>>
@@ -364,23 +360,40 @@ namespace otmp
 	template<class list>
 	using cat_t = unbox_t<cat<list>>;
 
+	template<class elem, class list, class Func>
+	struct in_if
+		:any_of<list, carry<Func, elem>>
+	{};
+	template<class elem, class list, class Func>
+	using in_if_t = unbox_t<in_if<elem, list, Func>>;
+
 	template<class elem, class list>
 	struct in
-		: any_of<list, carry<lift_c<std::is_same>, elem>>
+		: in_if<elem,list,lift<std::is_same>>
 	{};
 	template<class elem, class list>
 	using in_t = unbox_t<in<elem, list>>;
-
-	template<class listL, class listR>
-	struct unique_concat
-		:concat<listL, filter_if_t<listR, not_apply<rcarry<lift<in>, listL>>>>
+	
+	template<class listL, class listR, class Func>
+	struct unique_if_concat
+		:concat<listL, filter_if_t<listR, not_apply<rcarry<lift<in_if>, listL, Func>>>>
 	{};
+	template<class listL, class listR, class Func>
+	using unique_if_concat_t = unbox_t<unique_if_concat<listL, listR, Func>>;
+
+	template<class list, class Func>
+	struct unique_if
+		:fold<map_t<list, self<List>>, rcarry<lift<unique_if_concat>, Func>, List<>>
+	{};
+	template<class list, class Func>
+	using unique_if_t = unbox_t<unique_if<list, Func>>;
 
 	template<class list>
 	struct unique
-		:fold<map_t<list, lift<make_List>>, lift<unique_concat>, List<>>
+		:unique_if<list, lift<std::is_same>>
 	{};
 	template<class list>
 	using unique_t = unbox_t<unique<list>>;
 }
+
 #endif

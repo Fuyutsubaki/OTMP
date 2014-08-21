@@ -10,7 +10,7 @@ namespace otmp
 	//map
 	static_assert(std::is_same<map_t<List<int, char>, lift<std::add_pointer>>, List<int*, char*>>::value, "");
 	//bind
-	static_assert(eval<bind<lift_c<std::is_same>, Arg<0>, int> , int > ::type::value, "");
+	static_assert(eval<bind<lift<std::is_same>, Arg<0>, int> , int > ::type::value, "");
 	//S
 	
 	static_assert(
@@ -18,7 +18,7 @@ namespace otmp
 			eval<
 				S<
 					lift<if_>,
-					S<lift_c<std::is_integral>, Arg<0>>,
+					S<lift<std::is_integral>, Arg<0>>,
 					S<lift<std::add_pointer>, Arg<0>>,
 					void
 				>
@@ -44,24 +44,3 @@ namespace otmp
 	//unique
 	static_assert(std::is_same < unique_t<List< int, long, int, long, void, int>>, List<int, long, void>>::value, "");
 }
-
-//MSVCで不可思議な動作をした。原因はanyだと思われる
-/*
-#include<iostream>
-#include<otmp.hpp>
-
-template<class T>
-struct in2
-:otmp::in<T, otmp::List<int>>
-{};
-
-int main()
-{
-using namespace otmp;
-using list = List<float, void, double>;
-using R = map<list, lift<in2>>::type;//この行を消すとなぜか動かない
-std::cout << typeid(otmp::in<int, otmp::List<int, char>>::type).name();
-static_assert(otmp::in<int, otmp::List<int>>::type::value, "");
-
-}
-*/
