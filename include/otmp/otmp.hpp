@@ -124,6 +124,9 @@ namespace otmp
 
 		template<class...A, class...B>
 		static List<A..., B...>concat_impl(List<A...>, List<B...>);
+
+		template<std::size_t...Idxs>
+		List<std::integral_constant<std::size_t, Idxs>...>make_index_List_impl(index_sequence<Idxs...>);
 	}
 	
 	template<class list>
@@ -190,6 +193,14 @@ namespace otmp
 	{};
 	template<class list>
 	using tail_t = unbox_t<tail<list>>;
+
+	template<std::size_t N>
+	struct make_index_List
+		:identity<decltype(deteil::make_index_List_impl(make_index_sequence_t<N>{}))>
+	{};
+
+	template<std::size_t N>
+	using make_index_List_t = unbox_t<make_index_List<N>>;
 
 }
 //HiOrderFunction
@@ -394,6 +405,17 @@ namespace otmp
 	{};
 	template<class list>
 	using unique_t = unbox_t<unique<list>>;
+
+	template<class list1, class list2>
+	struct _zip_with
+	{
+		template<class, class>
+		struct impl
+		{};
+		template<class ...L, class...R>
+		struct impl<List<L...>, List<R...>>
+		{};
+	};
 }
 
 #endif
