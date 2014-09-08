@@ -14,13 +14,13 @@ namespace otmp
 	//filter
 	static_assert(std::is_same<filter_if<List<char, void, int>, lift<std::is_integral>>, List<char, int>>::value, "");
 
-	////all
-	//static_assert(!all_of<List<char, void>, lift<std::is_integral>>::value, "");
-	//static_assert(all_of<List<char, int>, lift<std::is_integral>>::value, "");
+	//all
+	static_assert(!all_of<List<char, void>, lift<std::is_integral>>::value, "");
+	static_assert(all_of<List<char, int>, lift<std::is_integral>>::value, "");
 
-	////any
-	//static_assert(any_of<List<char, void>, lift<std::is_integral>>::value, "");
-	//static_assert(!any_of<List<void, int&>, lift<std::is_integral>>::value, "");
+	//any
+	static_assert(any_of<List<char, void>, lift<std::is_integral>>::value, "");
+	static_assert(!any_of<List<void, int&>, lift<std::is_integral>>::value, "");
 	
 	////cat
 	//static_assert(std::is_same<cat_t<List<>>, List<>>::value, "");

@@ -1,13 +1,6 @@
 #pragma once
 #include<type_traits>
 
-
-
-/*
- *エイリアススタイルのMPLを作っていたがとん挫した
- *エイリアス内でエイリアスを使ったのが原因と思われる
- *
- */
 //utility
 namespace otmp
 {
@@ -176,23 +169,33 @@ namespace otmp
 		:Func::template apply<Args...>
 	{};
 	
-	namespace HOFdeteil
+	namespace deteil
 	{
-		template<class Func, class...T>
-		auto map_impl(List<T...>, Func)
-			->List<unwrap<eval<Func, T>>...>;
-
-		template<class Func, class...T>
-		auto apply_impl(List<T...>, Func)
-			->typename eval<Func, T...>::type;
+		template<class list, class Func>
+		struct map_impl
+		{
+			template<class...T>
+			static auto impl(List<T...>)
+				->List<unwrap<eval<Func, T>>...>;
+			using type = decltype(impl(list{}));
+		};
+		
+		template<class list, class Func>
+		struct apply_impl
+		{
+			template<class...T>
+			static auto impl(List<T...>)
+				->typename eval<Func, T...>::type;
+			using type = decltype(impl(list{}));
+		};
 	}
 
 	template<class list, class Func>
-	using map = decltype(HOFdeteil::map_impl(std::declval<list>(), std::declval<Func>()));
+	using map = unwrap<deteil::map_impl<list, Func>>;
 
 
 	template<class list, class Func>
-	using apply = decltype(HOFdeteil::apply_impl(std::declval<list>(), std::declval<Func>()));
+	using apply = unwrap<deteil::apply_impl<list, Func>>;
 
 	template<std::size_t>
 	struct Arg{};
