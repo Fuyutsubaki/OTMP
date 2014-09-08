@@ -154,6 +154,10 @@ namespace otmp
 	template<std::size_t N, class list>
 	using at_t = unbox_t<at<N, list>>;
 
+	template<class Idx, class list>
+	struct at_idx
+		:at<Idx::value, list>
+	{};
 
 	template<class listL, class listR>
 	struct concat
@@ -409,12 +413,7 @@ namespace otmp
 	template<class list1, class list2>
 	struct _zip_with
 	{
-		template<class, class>
-		struct impl
-		{};
-		template<class ...L, class...R>
-		struct impl<List<L...>, List<R...>>
-		{};
+		
 	};
 }
 
