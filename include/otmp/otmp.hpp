@@ -409,12 +409,6 @@ namespace otmp
 	{};
 	template<class list>
 	using unique_t = unbox_t<unique<list>>;
-
-	template<class list1, class list2>
-	struct _zip_with
-	{
-		
-	};
 }
 
 #endif

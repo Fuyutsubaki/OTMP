@@ -9,7 +9,7 @@ namespace otmp
 	{
 		using type = T;
 	};
-	namespace impl
+	namespace deteil
 	{
 		template<class T>
 		struct unwrap_impl
@@ -18,12 +18,12 @@ namespace otmp
 		};
 	}
 	template<class T>
-	using unwrap = typename impl::unwrap_impl<T>::type;
+	using unwrap = typename deteil::unwrap_impl<T>::type;
 
 	template<class T>
 	using identity = typename wrap<T>::type;
 
-	namespace impl
+	namespace deteil
 	{
 		template<class R, class T, class F>
 		struct cond_impl
@@ -32,7 +32,7 @@ namespace otmp
 	}
 	
 	template<class R, class T, class F>
-	using cond = typename impl::cond_impl<R, T, F>::type;
+	using cond = typename deteil::cond_impl<R, T, F>::type;
 
 	template<template<class...>class Func>
 	struct lift
@@ -59,7 +59,7 @@ namespace otmp
 	template<std::size_t ...Idxs>
 	struct index_sequence
 	{};
-	namespace plain
+	namespace deteil
 	{
 		template<std::size_t N>
 		struct make_index_sequence;
@@ -83,7 +83,7 @@ namespace otmp
 		};
 	}
 	template<std::size_t N>
-	using make_index_sequence = typename plain::make_index_sequence<N>::type;
+	using make_index_sequence = typename deteil::make_index_sequence<N>::type;
 }
 namespace otmp
 {
@@ -233,7 +233,7 @@ namespace otmp
 		{};
 	};
 
-	namespace impl
+	namespace deteil
 	{
 		template<class list, class Func>
 		struct fold_impl
@@ -252,27 +252,24 @@ namespace otmp
 	}
 	
 	template<class list, class Func>
-	using fold1 = unwrap<impl::fold_impl<list, Func>>;
+	using fold1 = unwrap<deteil::fold_impl<list, Func>>;
 
 	template<class list, class Func, class Default>
-	using fold = cond<is_emptyList<list>, wrap<Default>, fold1<list, Func>>;
+	using fold = unwrap< cond<is_emptyList<list>, wrap<Default>, eval<self<fold1>, list, Func> > > ;
 
-	namespace impl
+	namespace deteil
 	{
 		template<class list, class Func>
-		class filter_if_impl
+		struct filter_if_impl
 		{
 			template<class T>
-			struct impl
-				:wrap<cond<unwrap<eval<Func, T>>, List<T>, List<>>>
-			{};
-		public:
-			using type = fold<map<list, lift<impl>>, self<concat>, List<>>;
+			using impl = cond<unwrap<eval<Func, T>>, List<T>, List<>>;
+			using type = fold<map<list, self<impl>>, self<concat>, List<>>;
 		};
 	}
 	
 	template<class list, class Func>
-	using filter_if = unwrap<impl::filter_if_impl<list, Func>>;
+	using filter_if = unwrap<deteil::filter_if_impl<list, Func>>;
 }
 
 namespace otmp
@@ -294,4 +291,10 @@ namespace otmp
 	using all_of = unwrap<deteil::logic_impl<map<map<list, Func>, rcarry<self<cond>, void*, void>>, true>>;
 	template<class list, class Func>
 	using any_of = unwrap<deteil::logic_impl<map<map<list, Func>, rcarry<self<cond>, void, void*>>, false>>;
+}
+
+namespace otmp
+{
+	template<class list>
+	using cat = fold<list, self<concat>, List<>>;
 }

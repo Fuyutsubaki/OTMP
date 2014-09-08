@@ -22,9 +22,9 @@ namespace otmp
 	static_assert(any_of<List<char, void>, lift<std::is_integral>>::value, "");
 	static_assert(!any_of<List<void, int&>, lift<std::is_integral>>::value, "");
 	
-	////cat
-	//static_assert(std::is_same<cat_t<List<>>, List<>>::value, "");
-	//static_assert(std::is_same<cat<List<List<char>, List<>>>::type, List<char>>::value, "");
+	//cat
+	static_assert(std::is_same<cat<List<>>, List<>>::value, "");
+	static_assert(std::is_same<cat<List<List<char>, List<>>>, List<char>>::value, "");
 
 	////unique
 	//static_assert(std::is_same < unique_t<List< int, long, int, long, void, int>>, List<int, long, void>>::value, "");
