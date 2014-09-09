@@ -85,6 +85,7 @@ namespace otmp
 	template<std::size_t N>
 	using make_index_sequence = typename deteil::make_index_sequence<N>::type;
 }
+//List
 namespace otmp
 {
 	namespace deteil
@@ -270,8 +271,25 @@ namespace otmp
 	
 	template<class list, class Func>
 	using filter_if = unwrap<deteil::filter_if_impl<list, Func>>;
-}
+	namespace deteil
+	{
+		template<class Lhs, class Rhs>
+		struct chain_impl
+		{
+			template<class T>
+			struct apply
+				:eval<Rhs, unwrap<eval<Lhs, T>>>
+			{};
+		};
+	}
+	template<class...T>
+	struct chain
+		:fold<List<T...>, self<deteil::chain_impl>, self<identity>>
+	{};
 
+
+}
+//logic
 namespace otmp
 {
 	namespace deteil
@@ -293,8 +311,44 @@ namespace otmp
 	using any_of = unwrap<deteil::logic_impl<map<map<list, Func>, rcarry<self<cond>, void, void*>>, false>>;
 }
 
+//set
+namespace otmp
+{
+	namespace deteil
+	{
+		template<std::size_t,class T>
+		struct set_impl2 :wrap<T>{};
+		template<class...>struct set_impl;
+		template<std::size_t...N, class...elem>
+		struct set_impl<index_sequence<N...>, elem...>
+			:set_impl2<N, elem>...
+		{};
+	}
+	template<class...elem>
+	class Set
+		:deteil::set_impl<make_index_sequence<sizeof...(elem)>, elem...>
+	{};
+	namespace deteil
+	{
+		template<class elem, class list>
+		struct in_impl
+			:wrap<any_of<list, carry<lift<std::is_same>, elem>>>
+		{};
+		template<class elem, class...T>
+		struct in_impl<elem, Set<T...>>
+			:std::is_base_of< wrap<elem>, Set<T...>>
+		{};
+	}
+	template<class elem, class list>
+	using in = unwrap<deteil::in_impl<elem, list>>;
+	
+}
 namespace otmp
 {
 	template<class list>
 	using cat = fold<list, self<concat>, List<>>;
+
+
+
+
 }
