@@ -53,6 +53,14 @@ namespace otmp
 	};
 }
 
+//index operators
+namespace otmp
+{
+	template<class Integral>
+	using not_ = std::integral_constant<bool, !(Integral::value)>;
+
+}
+
 //index_sequence
 namespace otmp
 {
@@ -342,7 +350,13 @@ namespace otmp
 	template<class elem, class list>
 	using in = unwrap<deteil::in_impl<elem, list>>;
 	
+	template<class listL, class listR>
+	using union_cat = concat<listL, filter_if<listR, chain<rcarry<self<in>, listL>, self<not_>>>>;
+	template<class listL, class listR>
+	using intersection_cat = filter_if<listL, rcarry<self<in>, listR> >;
 }
+
+
 namespace otmp
 {
 	template<class list>

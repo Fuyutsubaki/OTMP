@@ -40,6 +40,10 @@ namespace otmp
 	//in set
 	static_assert(in<void, Set<char, int, void>>::value, "");
 	static_assert(!in<void, Set<char, int, float>>::value, "");
+	//union_cat
+	static_assert(std::is_same<union_cat<List<char, int, long>, List<int, void, float>>, List<char, int, long, void, float>>::value, "");
+	//intersection_cat
+	static_assert(std::is_same<intersection_cat<List<char, int, long>, List<int, void, float>>, List<int>>::value, "");
 
 	////unique
 	//static_assert(std::is_same < unique_t<List< int, long, int, long, void, int>>, List<int, long, void>>::value, "");
