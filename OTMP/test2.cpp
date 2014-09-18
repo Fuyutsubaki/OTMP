@@ -6,6 +6,9 @@ namespace otmp
 	//head
 	static_assert(std::is_same<head<List<int, char, void>>, int>::value, "");
 	
+	//drop
+	static_assert(std::is_same<drop<1, List<int, char, void>>, List<char, void>>::value, "");
+
 	//map
 	static_assert(std::is_same<map<List<int, char>, lift<std::add_pointer>>, List<int*, char*>>::value, "");
 	//bind
@@ -45,6 +48,6 @@ namespace otmp
 	//intersection_cat
 	static_assert(std::is_same<intersection_cat<List<char, int, long>, List<int, void, float>>, List<int>>::value, "");
 
-	////unique
-	//static_assert(std::is_same < unique_t<List< int, long, int, long, void, int>>, List<int, long, void>>::value, "");
+	//unique
+	static_assert(std::is_same <unique<List< int, long, int, long, void>>, List<int, long, void>>::value, "");
 }

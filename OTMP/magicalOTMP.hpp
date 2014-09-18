@@ -70,10 +70,10 @@ namespace otmp
 	namespace deteil
 	{
 		template<std::size_t N>
-		struct make_index_sequence;
+		struct make_index_sequence_impl;
 		
 		template<std::size_t N>
-		struct make_index_sequence
+		struct make_index_sequence_impl
 		{
 			template<std::size_t...Idxs>
 			static auto trans(index_sequence<Idxs...>, ...)
@@ -82,16 +82,16 @@ namespace otmp
 			static auto trans(index_sequence<Idxs...>, std::integral_constant<bool, 1>)
 				->index_sequence<Idxs..., (N / 2 + Idxs)..., N - 1>;
 		public:
-			using type = decltype(trans(typename make_index_sequence<N / 2>::type{}, std::integral_constant<bool, N % 2>{}));
+			using type = decltype(trans(typename make_index_sequence_impl<N / 2>::type{}, std::integral_constant<bool, N % 2>{}));
 		};
 		template<>
-		struct make_index_sequence<0>
+		struct make_index_sequence_impl<0>
 		{
 			using type = index_sequence<>;
 		};
 	}
 	template<std::size_t N>
-	using make_index_sequence = typename deteil::make_index_sequence<N>::type;
+	using make_index_sequence = typename deteil::make_index_sequence_impl<N>::type;
 }
 //List
 namespace otmp
@@ -132,7 +132,20 @@ namespace otmp
 			static T impl(deteil::Pair<N, T>);
 			using type = decltype(impl(list{}));
 		};
-		
+
+		template<std::size_t N, class list>
+		struct drop_impl
+		{
+			template<class T, class IdxSeq>struct impl{};
+			template<class...T, std::size_t ...Idxs>
+			struct impl<List<T...>, index_sequence<Idxs...>>
+			{
+				template<class...U>
+				static List<unwrap<U>...> trans(deteil::do_nothing<Idxs>..., U...);
+				using type = decltype(trans(wrap<T>{}...));
+			};
+			using type = unwrap<impl<list, make_index_sequence<N>>>;
+		};
 		template<class listL, class listR>
 		struct concat_impl
 		{
@@ -145,7 +158,7 @@ namespace otmp
 		struct make_index_List_impl
 		{
 			template<std::size_t...Idxs>
-			List<std::integral_constant<std::size_t, Idxs>...>impl(index_sequence<Idxs...>);
+			static List<std::integral_constant<std::size_t, Idxs>...>impl(index_sequence<Idxs...>);
 			using type = decltype(impl(list{}));
 		};
 	}
@@ -158,6 +171,12 @@ namespace otmp
 
 	template<std::size_t N, class list>
 	using at = unwrap<deteil::at_impl<N, list>>;
+
+	template<class Idx, class list>
+	using at_idx = at<Idx::value, list>;
+
+	template<std::size_t N, class list>
+	using drop = unwrap<deteil::drop_impl<N, list>>;
 
 	template<class listL, class listR>
 	using concat = unwrap<deteil::concat_impl<listL, listR>>;
@@ -336,6 +355,9 @@ namespace otmp
 	class Set
 		:deteil::set_impl<make_index_sequence<sizeof...(elem)>, elem...>
 	{};
+
+	template<class list>
+	using to_Set = apply<list, self<Set>>;
 	namespace deteil
 	{
 		template<class elem, class list>
@@ -351,9 +373,12 @@ namespace otmp
 	using in = unwrap<deteil::in_impl<elem, list>>;
 	
 	template<class listL, class listR>
-	using union_cat = concat<listL, filter_if<listR, chain<rcarry<self<in>, listL>, self<not_>>>>;
+	using union_cat = concat<listL, filter_if<listR, chain<rcarry<self<in>, to_Set<listL>>, self<not_>>>>;
 	template<class listL, class listR>
-	using intersection_cat = filter_if<listL, rcarry<self<in>, listR> >;
+	using intersection_cat = filter_if<listL, rcarry<self<in>, to_Set<listR>>>;
+
+	template<class list>
+	using unique = fold<map<list, self<List>>, self<union_cat>, List<>>;
 }
 
 
@@ -361,8 +386,4 @@ namespace otmp
 {
 	template<class list>
 	using cat = fold<list, self<concat>, List<>>;
-
-
-
-
 }
